@@ -1,0 +1,44 @@
+name: Deploy static site to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]   # 기본 브랜치가 'main'이 아니면 변경하세요.
+  workflow_dispatch:
+
+# GitHub Pages 배포에 필요한 최소 권한
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 동시 실행 시 이전 배포 취소 (권장)
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pages 환경 구성(기본 설정이면 그대로 두면 됩니다)
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 업로드할 정적 파일 경로 지정(여기서는 저장소 루트)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+      # 실제 배포
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
